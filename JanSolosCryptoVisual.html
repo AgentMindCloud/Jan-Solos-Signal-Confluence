@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Signal Confluence — 60 Indicators, Zero Chart Spaghetti</title>
+<meta name="description" content="60 crypto indicators visualized in a single radial display. 9 categories, real-time bull/bear signals, zero chart spaghetti. Free tool by Jan Solos.">
+<meta property="og:title" content="Signal Confluence — 60 Indicators Visualized">
+<meta property="og:description" content="60 crypto indicators compressed into one radial visual. 9 categories. Zero chart spaghetti. Free.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://signalconfluence.app">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:creator" content="@JanSol0s">
+<meta name="twitter:title" content="Signal Confluence — 60 Indicators Visualized">
+<meta name="twitter:description" content="60 crypto indicators compressed into one radial visual. 9 categories. Zero chart spaghetti.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%2308080C' stroke='%2310B981' stroke-width='4'/><text x='50' y='62' text-anchor='middle' font-size='36' font-weight='800' fill='%2310B981'>S</text></svg>">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #08080C; color: #fff; font-family: Inter, system-ui, -apple-system, sans-serif; overflow-x: hidden; }
+  canvas { cursor: crosshair; }
+  button { font-family: inherit; }
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.14); }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script>
+const { useState, useEffect, useRef, useCallback, createElement: h } = React;
+
+// ============================================================
+// SIGNAL CONFLUENCE VISUALIZER — 60 INDICATORS, 9 CATEGORIES
+// ============================================================
+
+const CATEGORIES = [
+  { id: "momentum",    label: "Momentum",    color: "#3B82F6", desc: "Speed & strength of price moves" },
+  { id: "trend",       label: "Trend",       color: "#8B5CF6", desc: "Direction & trend strength" },
+  { id: "volatility",  label: "Volatility",  color: "#F59E0B", desc: "Price range & instability" },
+  { id: "volume",      label: "Volume",      color: "#06B6D4", desc: "Trading activity & flow" },
+  { id: "sentiment",   label: "Sentiment",   color: "#EC4899", desc: "Market mood & crowd behavior" },
+  { id: "onchain",     label: "On-Chain",    color: "#F97316", desc: "Blockchain network activity" },
+  { id: "derivatives", label: "Derivatives",  color: "#6366F1", desc: "Futures, options & leverage" },
+  { id: "crossasset",  label: "Cross-Asset", color: "#A78BFA", desc: "Correlations & macro signals" },
+  { id: "composite",   label: "Composite",   color: "#FBBF24", desc: "Combined & custom scores" },
+];
+
+const INDICATORS = [
+  { name: "RSI (14)", cat: "momentum", value: 62, signal: 0.6 },
+  { name: "MACD Signal", cat: "momentum", value: 145, signal: 0.7 },
+  { name: "MACD Histogram", cat: "momentum", value: 82, signal: 0.5 },
+  { name: "Stochastic RSI", cat: "momentum", value: 71, signal: 0.55 },
+  { name: "Stochastic %K", cat: "momentum", value: 68, signal: 0.4 },
+  { name: "Williams %R", cat: "momentum", value: -32, signal: 0.6 },
+  { name: "CCI (20)", cat: "momentum", value: 88, signal: 0.45 },
+  { name: "ROC (12)", cat: "momentum", value: 3.2, signal: 0.5 },
+  { name: "Awesome Oscillator", cat: "momentum", value: 1240, signal: 0.65 },
+  { name: "EMA 20/50 Cross", cat: "trend", value: 1, signal: 0.8 },
+  { name: "EMA 50/200 Cross", cat: "trend", value: 1, signal: 0.9 },
+  { name: "ADX (14)", cat: "trend", value: 28, signal: 0.55 },
+  { name: "Supertrend", cat: "trend", value: 1, signal: 0.75 },
+  { name: "Parabolic SAR", cat: "trend", value: 1, signal: 0.7 },
+  { name: "Ichimoku Cloud", cat: "trend", value: 1, signal: 0.6 },
+  { name: "Aroon Up/Down", cat: "trend", value: 78, signal: 0.65 },
+  { name: "Hull MA Trend", cat: "trend", value: 1, signal: 0.5 },
+  { name: "Bollinger Width", cat: "volatility", value: 0.045, signal: -0.3 },
+  { name: "ATR (14)", cat: "volatility", value: 1820, signal: -0.2 },
+  { name: "Keltner Width", cat: "volatility", value: 0.038, signal: -0.15 },
+  { name: "Donchian Width", cat: "volatility", value: 4200, signal: -0.4 },
+  { name: "BB %B", cat: "volatility", value: 0.72, signal: 0.4 },
+  { name: "Historical Vol 30d", cat: "volatility", value: 42, signal: -0.25 },
+  { name: "OBV Trend", cat: "volume", value: 1, signal: 0.6 },
+  { name: "VWAP Position", cat: "volume", value: 1, signal: 0.55 },
+  { name: "MFI (14)", cat: "volume", value: 58, signal: 0.35 },
+  { name: "CMF (20)", cat: "volume", value: 0.12, signal: 0.5 },
+  { name: "Force Index", cat: "volume", value: 4500, signal: 0.45 },
+  { name: "Volume SMA Ratio", cat: "volume", value: 1.3, signal: 0.4 },
+  { name: "Taker Buy/Sell", cat: "volume", value: 1.08, signal: 0.5 },
+  { name: "Fear & Greed", cat: "sentiment", value: 68, signal: 0.55 },
+  { name: "Long/Short Ratio", cat: "sentiment", value: 1.42, signal: 0.6 },
+  { name: "Funding Rate", cat: "sentiment", value: 0.012, signal: -0.3 },
+  { name: "Social Volume", cat: "sentiment", value: 7200, signal: 0.4 },
+  { name: "Whale Alert Score", cat: "sentiment", value: 3, signal: 0.2 },
+  { name: "ETF Net Flow", cat: "sentiment", value: 285, signal: 0.7 },
+  { name: "Put/Call Ratio", cat: "sentiment", value: 0.62, signal: 0.5 },
+  { name: "NUPL", cat: "onchain", value: 0.52, signal: 0.6 },
+  { name: "SOPR", cat: "onchain", value: 1.02, signal: 0.45 },
+  { name: "MVRV Z-Score", cat: "onchain", value: 2.1, signal: 0.3 },
+  { name: "Exchange Netflow", cat: "onchain", value: -1200, signal: 0.7 },
+  { name: "Puell Multiple", cat: "onchain", value: 1.1, signal: 0.35 },
+  { name: "Stock-to-Flow", cat: "onchain", value: 0.85, signal: -0.2 },
+  { name: "Active Addresses", cat: "onchain", value: 920000, signal: 0.5 },
+  { name: "Open Interest \u0394", cat: "derivatives", value: 2.4, signal: 0.5 },
+  { name: "OI-Weighted Funding", cat: "derivatives", value: 0.008, signal: -0.15 },
+  { name: "Liquidation Imbalance", cat: "derivatives", value: 1.8, signal: 0.6 },
+  { name: "Perp vs Spot Spread", cat: "derivatives", value: 0.15, signal: 0.3 },
+  { name: "Options Max Pain", cat: "derivatives", value: 67000, signal: 0.4 },
+  { name: "Futures Basis", cat: "derivatives", value: 0.32, signal: 0.45 },
+  { name: "Liquidation Heatmap", cat: "derivatives", value: 68500, signal: 0.55 },
+  { name: "DXY Inverse", cat: "crossasset", value: 103.2, signal: 0.35 },
+  { name: "Gold Correlation", cat: "crossasset", value: 0.42, signal: 0.3 },
+  { name: "SPX Correlation", cat: "crossasset", value: 0.65, signal: 0.5 },
+  { name: "BTC Dominance", cat: "crossasset", value: 58.3, signal: 0.6 },
+  { name: "ETH/BTC Ratio", cat: "crossasset", value: 0.038, signal: -0.2 },
+  { name: "Trend Confluence", cat: "composite", value: 72, signal: 0.65 },
+  { name: "Momentum Confluence", cat: "composite", value: 68, signal: 0.55 },
+  { name: "Risk Score", cat: "composite", value: 35, signal: 0.5 },
+  { name: "Signal Strength", cat: "composite", value: 74, signal: 0.6 },
+];
+
+const signalColor = (s) => {
+  if (s > 0.15) return "rgba(16, 185, 129, " + (0.4 + Math.abs(s) * 0.6) + ")";
+  if (s < -0.15) return "rgba(239, 68, 68, " + (0.4 + Math.abs(s) * 0.6) + ")";
+  return "rgba(156, 163, 175, 0.5)";
+};
+const signalLabel = (s) => s > 0.15 ? "BULL" : s < -0.15 ? "BEAR" : "NEUTRAL";
+const signalTextColor = (s) => s > 0.15 ? "#10B981" : s < -0.15 ? "#EF4444" : "#9CA3AF";
+
+const getCategoryStats = () => CATEGORIES.map(cat => {
+  const inds = INDICATORS.filter(i => i.cat === cat.id);
+  const avg = inds.reduce((s, i) => s + i.signal, 0) / inds.length;
+  const bullCount = inds.filter(i => i.signal > 0.15).length;
+  const bearCount = inds.filter(i => i.signal < -0.15).length;
+  return { ...cat, avg, count: inds.length, bullCount, bearCount, indicators: inds };
+});
+
+const getMasterScore = () => {
+  const avg = INDICATORS.reduce((s, i) => s + i.signal, 0) / INDICATORS.length;
+  return Math.round((avg + 1) * 50);
+};
+
+// ============================================================
+// RADIAL CANVAS RENDERER
+// ============================================================
+function RadialViz({ hovered, setHovered, selectedCat, setSelectedCat }) {
+  const canvasRef = useRef(null);
+  const animRef = useRef(0);
+  const timeRef = useRef(0);
+
+  const draw = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    const dpr = window.devicePixelRatio || 1;
+    const W = canvas.clientWidth;
+    const H = canvas.clientHeight;
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    ctx.scale(dpr, dpr);
+
+    const cx = W / 2;
+    const cy = H / 2;
+    const maxR = Math.min(W, H) / 2 - 20;
+    const t = timeRef.current;
+
+    ctx.clearRect(0, 0, W, H);
+
+    const stats = getCategoryStats();
+    const masterScore = getMasterScore();
+    const catCount = stats.length;
+    const arcGap = 0.02;
+    const arcSize = (Math.PI * 2 - catCount * arcGap) / catCount;
+
+    // LAYER 3: Individual indicator bars (outer ring)
+    const outerR1 = maxR * 0.58;
+    const outerR2 = maxR * 0.92;
+
+    stats.forEach((cat, ci) => {
+      const startAngle = ci * (arcSize + arcGap) - Math.PI / 2 + arcGap / 2;
+      const endAngle = startAngle + arcSize;
+      const isSelected = selectedCat === cat.id;
+      const catColor = cat.color;
+
+      ctx.beginPath();
+      ctx.arc(cx, cy, outerR1, startAngle, endAngle);
+      ctx.arc(cx, cy, outerR2, endAngle, startAngle, true);
+      ctx.closePath();
+      const bgAlpha = isSelected ? 0.15 : 0.06;
+      ctx.fillStyle = catColor + Math.round(bgAlpha * 255).toString(16).padStart(2, "0");
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(cx, cy, outerR2, startAngle, endAngle);
+      ctx.strokeStyle = catColor + (isSelected ? "60" : "30");
+      ctx.lineWidth = isSelected ? 2 : 1;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(cx, cy, outerR1, startAngle, endAngle);
+      ctx.strokeStyle = catColor + "20";
+      ctx.lineWidth = 0.5;
+      ctx.stroke();
+
+      const inds = cat.indicators;
+      const barCount = inds.length;
+      if (barCount === 0) return;
+      const barAngleSize = arcSize / barCount;
+
+      inds.forEach((ind, ii) => {
+        const barStart = startAngle + ii * barAngleSize + 0.005;
+        const barEnd = barStart + barAngleSize - 0.01;
+        const strength = Math.abs(ind.signal);
+        const barR1 = outerR1 + 4;
+        const barR2 = outerR1 + 4 + (outerR2 - outerR1 - 8) * Math.max(0.08, strength);
+
+        ctx.beginPath();
+        ctx.arc(cx, cy, barR1, barStart, barEnd);
+        ctx.arc(cx, cy, barR2, barEnd, barStart, true);
+        ctx.closePath();
+
+        const isHov = hovered && hovered.name === ind.name;
+        const col = ind.signal > 0.15
+          ? "rgba(16, 185, 129, " + (isHov ? 0.95 : 0.55 + strength * 0.35) + ")"
+          : ind.signal < -0.15
+          ? "rgba(239, 68, 68, " + (isHov ? 0.95 : 0.55 + strength * 0.35) + ")"
+          : "rgba(156, 163, 175, " + (isHov ? 0.7 : 0.3) + ")";
+        ctx.fillStyle = col;
+        ctx.fill();
+
+        if (strength > 0.5 || isHov) {
+          ctx.shadowColor = ind.signal > 0 ? "#10B981" : "#EF4444";
+          ctx.shadowBlur = isHov ? 12 : 6;
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        }
+
+        const dotAngle = (barStart + barEnd) / 2;
+        const dotR = outerR1 + 2;
+        ctx.beginPath();
+        ctx.arc(cx + Math.cos(dotAngle) * dotR, cy + Math.sin(dotAngle) * dotR, 1.5, 0, Math.PI * 2);
+        ctx.fillStyle = catColor;
+        ctx.fill();
+      });
+
+      const labelAngle = (startAngle + endAngle) / 2;
+      const labelR = maxR * 0.98;
+      const lx = cx + Math.cos(labelAngle) * labelR;
+      const ly = cy + Math.sin(labelAngle) * labelR;
+      ctx.save();
+      ctx.translate(lx, ly);
+      let rot = labelAngle + Math.PI / 2;
+      if (labelAngle > Math.PI / 2 && labelAngle < Math.PI * 1.5) rot += Math.PI;
+      ctx.rotate(rot);
+      ctx.fillStyle = catColor;
+      ctx.font = (isSelected ? "600 10px" : "600 9px") + " Inter, system-ui, sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(cat.label.toUpperCase(), 0, 0);
+      ctx.restore();
+    });
+
+    // LAYER 2: Category summary ring
+    const midR1 = maxR * 0.38;
+    const midR2 = maxR * 0.54;
+
+    stats.forEach((cat, ci) => {
+      const startAngle = ci * (arcSize + arcGap) - Math.PI / 2 + arcGap / 2;
+      const endAngle = startAngle + arcSize;
+      const isSelected = selectedCat === cat.id;
+      const arcMid = (startAngle + endAngle) / 2;
+
+      ctx.beginPath();
+      ctx.arc(cx, cy, midR1, startAngle, endAngle);
+      ctx.arc(cx, cy, midR2, endAngle, startAngle, true);
+      ctx.closePath();
+      const summaryColor = cat.avg > 0.15
+        ? "rgba(16, 185, 129, " + (0.25 + cat.avg * 0.5) + ")"
+        : cat.avg < -0.15
+        ? "rgba(239, 68, 68, " + (0.25 + Math.abs(cat.avg) * 0.5) + ")"
+        : "rgba(156, 163, 175, 0.2)";
+      ctx.fillStyle = summaryColor;
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(cx, cy, midR1, startAngle, endAngle);
+      ctx.strokeStyle = cat.color + (isSelected ? "CC" : "80");
+      ctx.lineWidth = isSelected ? 3 : 2;
+      ctx.stroke();
+
+      const tx = cx + Math.cos(arcMid) * ((midR1 + midR2) / 2);
+      const ty = cy + Math.sin(arcMid) * ((midR1 + midR2) / 2);
+      ctx.fillStyle = "#fff";
+      ctx.font = "700 11px Inter, system-ui, sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(cat.bullCount + "/" + cat.count, tx, ty);
+    });
+
+    // LAYER 1: Master score center
+    const coreR = maxR * 0.32;
+    const glowColor = masterScore > 60 ? "rgba(16, 185, 129," : masterScore < 40 ? "rgba(239, 68, 68," : "rgba(156, 163, 175,";
+
+    const grad = ctx.createRadialGradient(cx, cy, coreR * 0.2, cx, cy, coreR);
+    grad.addColorStop(0, glowColor + "0.15)");
+    grad.addColorStop(0.6, glowColor + "0.06)");
+    grad.addColorStop(1, glowColor + "0)");
+    ctx.beginPath();
+    ctx.arc(cx, cy, coreR, 0, Math.PI * 2);
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    const pulse = 0.5 + Math.sin(t * 2) * 0.3;
+    ctx.beginPath();
+    ctx.arc(cx, cy, coreR, 0, Math.PI * 2);
+    ctx.strokeStyle = (masterScore > 60 ? "#10B981" : masterScore < 40 ? "#EF4444" : "#6B7280")
+      + Math.round(pulse * 180).toString(16).padStart(2, "0");
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, coreR - 3, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(10, 10, 15, 0.85)";
+    ctx.fill();
+
+    ctx.fillStyle = masterScore > 60 ? "#10B981" : masterScore < 40 ? "#EF4444" : "#9CA3AF";
+    ctx.font = "800 48px Inter, system-ui, sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(masterScore, cx, cy - 14);
+
+    ctx.fillStyle = "rgba(255,255,255,0.5)";
+    ctx.font = "500 11px Inter, system-ui, sans-serif";
+    ctx.fillText("CONFLUENCE", cx, cy + 16);
+
+    const label = masterScore > 70 ? "STRONG BULL" : masterScore > 55 ? "LEAN BULL" :
+      masterScore > 45 ? "NEUTRAL" : masterScore > 30 ? "LEAN BEAR" : "STRONG BEAR";
+    ctx.fillStyle = masterScore > 60 ? "#10B98188" : masterScore < 40 ? "#EF444488" : "#6B728088";
+    ctx.font = "700 10px Inter, system-ui, sans-serif";
+    ctx.fillText(label, cx, cy + 32);
+
+    ctx.fillStyle = "rgba(255,255,255,0.25)";
+    ctx.font = "400 9px Inter, system-ui, sans-serif";
+    ctx.fillText(INDICATORS.length + " INDICATORS", cx, cy + 46);
+
+    [midR1, midR2, outerR1, outerR2].forEach(r => {
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.strokeStyle = "rgba(255,255,255,0.04)";
+      ctx.lineWidth = 0.5;
+      ctx.stroke();
+    });
+
+    timeRef.current += 0.016;
+    animRef.current = requestAnimationFrame(draw);
+  }, [hovered, selectedCat]);
+
+  useEffect(() => {
+    animRef.current = requestAnimationFrame(draw);
+    return () => cancelAnimationFrame(animRef.current);
+  }, [draw]);
+
+  const handleMouseMove = (e) => {
+    const canvas = canvasRef.current;
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    const cxR = rect.width / 2;
+    const cyR = rect.height / 2;
+    const maxR = Math.min(rect.width, rect.height) / 2 - 20;
+
+    const dx = mx - cxR;
+    const dy = my - cyR;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    let angle = Math.atan2(dy, dx) + Math.PI / 2;
+    if (angle < 0) angle += Math.PI * 2;
+
+    const stats = getCategoryStats();
+    const catCount = stats.length;
+    const arcGap = 0.02;
+    const arcSize = (Math.PI * 2 - catCount * arcGap) / catCount;
+
+    if (dist > maxR * 0.58 && dist < maxR * 0.92) {
+      const catIndex = Math.floor(angle / (arcSize + arcGap));
+      if (catIndex >= 0 && catIndex < catCount) {
+        const cat = stats[catIndex];
+        const catStartAngle = catIndex * (arcSize + arcGap);
+        const angleInCat = angle - catStartAngle;
+        const barAngleSize = arcSize / cat.indicators.length;
+        const indIndex = Math.floor(angleInCat / barAngleSize);
+        if (indIndex >= 0 && indIndex < cat.indicators.length) {
+          setHovered(cat.indicators[indIndex]);
+          return;
+        }
+      }
+    }
+
+    if (dist > maxR * 0.38 && dist < maxR * 0.54) {
+      const catIndex = Math.floor(angle / (arcSize + arcGap));
+      if (catIndex >= 0 && catIndex < catCount) {
+        setSelectedCat(stats[catIndex].id);
+        setHovered(null);
+        return;
+      }
+    }
+
+    setHovered(null);
+  };
+
+  return h("canvas", {
+    ref: canvasRef,
+    style: { width: "100%", height: "100%", cursor: "crosshair" },
+    onMouseMove: handleMouseMove,
+    onMouseLeave: () => { setHovered(null); },
+  });
+}
+
+// ============================================================
+// TOOLTIP
+// ============================================================
+function TooltipComponent({ indicator }) {
+  if (!indicator) return null;
+  const cat = CATEGORIES.find(c => c.id === indicator.cat);
+  return h("div", { style: {
+    background: "rgba(15, 15, 20, 0.95)",
+    border: "1px solid " + cat.color + "44",
+    borderLeft: "3px solid " + cat.color,
+    borderRadius: 8,
+    padding: "10px 14px",
+    minWidth: 200,
+    backdropFilter: "blur(12px)",
+  }},
+    h("div", { style: { display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }},
+      h("div", { style: {
+        width: 8, height: 8, borderRadius: "50%",
+        background: signalColor(indicator.signal),
+        boxShadow: "0 0 6px " + signalColor(indicator.signal),
+      }}),
+      h("span", { style: { color: "#fff", fontWeight: 700, fontSize: 13 }}, indicator.name)
+    ),
+    h("div", { style: { display: "flex", justifyContent: "space-between", fontSize: 11, color: "rgba(255,255,255,0.5)" }},
+      h("span", { style: { color: cat.color }}, cat.label),
+      h("span", { style: { color: signalTextColor(indicator.signal), fontWeight: 700 }},
+        signalLabel(indicator.signal) + " (" + (indicator.signal * 100).toFixed(0) + "%)"
+      )
+    ),
+    h("div", { style: { marginTop: 6, height: 3, borderRadius: 2, background: "rgba(255,255,255,0.08)", overflow: "hidden" }},
+      h("div", { style: {
+        width: Math.abs(indicator.signal) * 100 + "%",
+        height: "100%",
+        borderRadius: 2,
+        background: indicator.signal > 0.15 ? "#10B981" : indicator.signal < -0.15 ? "#EF4444" : "#6B7280",
+      }})
+    )
+  );
+}
+
+// ============================================================
+// CATEGORY DETAIL PANEL
+// ============================================================
+function CategoryPanel({ catId }) {
+  const cat = CATEGORIES.find(c => c.id === catId);
+  const inds = INDICATORS.filter(i => i.cat === catId);
+  if (!cat) return null;
+
+  const avg = inds.reduce((s, i) => s + i.signal, 0) / inds.length;
+  const bulls = inds.filter(i => i.signal > 0.15).length;
+  const bears = inds.filter(i => i.signal < -0.15).length;
+  const neutrals = inds.length - bulls - bears;
+
+  return h("div", { style: {
+    background: "rgba(15, 15, 20, 0.6)",
+    borderRadius: 12,
+    border: "1px solid " + cat.color + "22",
+    padding: 16,
+    backdropFilter: "blur(8px)",
+  }},
+    h("div", { style: { display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }},
+      h("div", { style: { width: 12, height: 12, borderRadius: 3, background: cat.color, boxShadow: "0 0 8px " + cat.color + "66" }}),
+      h("span", { style: { color: "#fff", fontWeight: 700, fontSize: 15 }}, cat.label),
+      h("span", { style: { color: "rgba(255,255,255,0.35)", fontSize: 11, marginLeft: "auto" }}, inds.length + " indicators")
+    ),
+    h("div", { style: { color: "rgba(255,255,255,0.4)", fontSize: 11, marginBottom: 10 }}, cat.desc),
+    h("div", { style: { display: "flex", gap: 4, marginBottom: 14 }},
+      h("div", { style: { flex: bulls, height: 6, borderRadius: 3, background: "#10B981", minWidth: bulls ? 8 : 0 }}),
+      h("div", { style: { flex: neutrals, height: 6, borderRadius: 3, background: "#4B5563", minWidth: neutrals ? 8 : 0 }}),
+      h("div", { style: { flex: bears, height: 6, borderRadius: 3, background: "#EF4444", minWidth: bears ? 8 : 0 }})
+    ),
+    h("div", { style: { display: "flex", justifyContent: "space-between", fontSize: 10, color: "rgba(255,255,255,0.4)", marginBottom: 12 }},
+      h("span", null, h("span", { style: { color: "#10B981" }}, bulls), " bull"),
+      h("span", null, neutrals + " neutral"),
+      h("span", null, h("span", { style: { color: "#EF4444" }}, bears), " bear")
+    ),
+    h("div", { style: { display: "flex", flexDirection: "column", gap: 4 }},
+      ...inds.map((ind, i) =>
+        h("div", { key: i, style: {
+          display: "flex", alignItems: "center", gap: 8, padding: "5px 8px",
+          borderRadius: 6,
+          background: "rgba(255,255,255,0.03)",
+          borderLeft: "2px solid " + cat.color + "66",
+        }},
+          h("div", { style: {
+            width: 6, height: 6, borderRadius: "50%",
+            background: signalColor(ind.signal),
+            boxShadow: "0 0 4px " + signalColor(ind.signal),
+            flexShrink: 0,
+          }}),
+          h("span", { style: { color: "rgba(255,255,255,0.7)", fontSize: 11, flex: 1 }}, ind.name),
+          h("span", { style: {
+            color: signalTextColor(ind.signal),
+            fontSize: 10, fontWeight: 700,
+            fontFamily: "monospace",
+          }}, (ind.signal > 0 ? "+" : "") + (ind.signal * 100).toFixed(0) + "%"),
+          h("div", { style: { width: 40, height: 3, borderRadius: 2, background: "rgba(255,255,255,0.06)", overflow: "hidden" }},
+            h("div", { style: {
+              width: Math.abs(ind.signal) * 100 + "%",
+              height: "100%",
+              borderRadius: 2,
+              background: ind.signal > 0.15 ? "#10B981" : ind.signal < -0.15 ? "#EF4444" : "#6B7280",
+            }})
+          )
+        )
+      )
+    )
+  );
+}
+
+// ============================================================
+// LEGEND
+// ============================================================
+function Legend({ selectedCat, setSelectedCat }) {
+  const stats = getCategoryStats();
+  return h("div", { style: { display: "flex", flexWrap: "wrap", gap: 6, justifyContent: "center" }},
+    ...stats.map(cat =>
+      h("button", {
+        key: cat.id,
+        onClick: () => setSelectedCat(selectedCat === cat.id ? null : cat.id),
+        style: {
+          display: "flex", alignItems: "center", gap: 5,
+          padding: "4px 10px", borderRadius: 6,
+          background: selectedCat === cat.id ? cat.color + "22" : "rgba(255,255,255,0.04)",
+          border: "1px solid " + (selectedCat === cat.id ? cat.color + "66" : "rgba(255,255,255,0.08)"),
+          cursor: "pointer",
+          transition: "all 0.2s",
+          outline: "none",
+        },
+      },
+        h("div", { style: {
+          width: 8, height: 8, borderRadius: 2,
+          background: cat.color,
+          boxShadow: selectedCat === cat.id ? "0 0 6px " + cat.color + "88" : "none",
+        }}),
+        h("span", { style: {
+          color: selectedCat === cat.id ? "#fff" : "rgba(255,255,255,0.5)",
+          fontSize: 10, fontWeight: 600,
+        }}, cat.label),
+        h("span", { style: {
+          color: signalTextColor(cat.avg), fontSize: 9, fontWeight: 700,
+          fontFamily: "monospace",
+        }}, cat.bullCount + "/" + cat.count)
+      )
+    )
+  );
+}
+
+// ============================================================
+// HOW TO READ
+// ============================================================
+function HowToRead() {
+  return h("div", { style: {
+    background: "rgba(255,255,255,0.03)",
+    borderRadius: 10,
+    padding: "12px 16px",
+    border: "1px solid rgba(255,255,255,0.06)",
+  }},
+    h("div", { style: { color: "rgba(255,255,255,0.6)", fontSize: 11, fontWeight: 700, marginBottom: 8 }}, "HOW TO READ"),
+    h("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, fontSize: 10, color: "rgba(255,255,255,0.4)" }},
+      h("div", null,
+        h("div", { style: { fontWeight: 700, color: "rgba(255,255,255,0.6)", marginBottom: 3 }}, "CENTER"),
+        "Master score 0-100. Green = bullish consensus, red = bearish."
+      ),
+      h("div", null,
+        h("div", { style: { fontWeight: 700, color: "rgba(255,255,255,0.6)", marginBottom: 3 }}, "MIDDLE RING"),
+        "9 categories. Numbers show bull/total ratio. Color = category type."
+      ),
+      h("div", null,
+        h("div", { style: { fontWeight: 700, color: "rgba(255,255,255,0.6)", marginBottom: 3 }}, "OUTER RING"),
+        "60 individual indicators. Bar height = signal strength. Green = bull, red = bear."
+      )
+    ),
+    h("div", { style: {
+      marginTop: 10, paddingTop: 8, borderTop: "1px solid rgba(255,255,255,0.06)",
+      display: "flex", gap: 16, fontSize: 10, color: "rgba(255,255,255,0.35)", flexWrap: "wrap", alignItems: "center",
+    }},
+      h("div", { style: { display: "flex", alignItems: "center", gap: 4 }},
+        h("div", { style: { width: 10, height: 10, borderRadius: 2, background: "#10B981" }}), "Bullish"
+      ),
+      h("div", { style: { display: "flex", alignItems: "center", gap: 4 }},
+        h("div", { style: { width: 10, height: 10, borderRadius: 2, background: "#EF4444" }}), "Bearish"
+      ),
+      h("div", { style: { display: "flex", alignItems: "center", gap: 4 }},
+        h("div", { style: { width: 10, height: 10, borderRadius: 2, background: "#6B7280" }}), "Neutral"
+      ),
+      h("span", { style: { marginLeft: "auto" }}, "Hover indicators for details. Click categories to expand.")
+    )
+  );
+}
+
+// ============================================================
+// MAIN APP
+// ============================================================
+function SignalConfluence() {
+  const [hovered, setHovered] = useState(null);
+  const [selectedCat, setSelectedCat] = useState(null);
+  const masterScore = getMasterScore();
+
+  return h("div", { style: {
+    background: "#08080C",
+    minHeight: "100vh",
+    color: "#fff",
+    fontFamily: "Inter, system-ui, -apple-system, sans-serif",
+    padding: 20,
+    display: "flex",
+    flexDirection: "column",
+    gap: 16,
+  }},
+    // Header
+    h("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between" }},
+      h("div", null,
+        h("div", { style: { fontSize: 18, fontWeight: 800, letterSpacing: "-0.02em" }}, "SIGNAL CONFLUENCE"),
+        h("div", { style: { fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 2 }}, "BTC/USDT \u2014 60 Indicators \u2014 9 Categories")
+      ),
+      h("div", { style: { textAlign: "right" }},
+        h("div", { style: {
+          fontSize: 13, fontWeight: 700,
+          color: masterScore > 60 ? "#10B981" : masterScore < 40 ? "#EF4444" : "#9CA3AF",
+        }},
+          masterScore > 70 ? "STRONG BULL" : masterScore > 55 ? "LEAN BULL" :
+          masterScore > 45 ? "NEUTRAL" : masterScore > 30 ? "LEAN BEAR" : "STRONG BEAR"
+        ),
+        h("div", { style: { fontSize: 10, color: "rgba(255,255,255,0.3)" }},
+          INDICATORS.filter(i => i.signal > 0.15).length + " bull / " +
+          INDICATORS.filter(i => i.signal < -0.15).length + " bear / " +
+          INDICATORS.filter(i => i.signal >= -0.15 && i.signal <= 0.15).length + " neutral"
+        )
+      )
+    ),
+
+    // Main layout
+    h("div", { style: {
+      display: "grid",
+      gridTemplateColumns: selectedCat ? "1fr 300px" : "1fr",
+      gap: 16,
+      flex: 1,
+      minHeight: 0,
+    }},
+      h("div", { style: {
+        position: "relative",
+        aspectRatio: "1",
+        maxHeight: "calc(100vh - 260px)",
+        margin: "0 auto",
+        width: "100%",
+        maxWidth: selectedCat ? "calc(100vh - 260px)" : 600,
+      }},
+        h(RadialViz, { hovered, setHovered, selectedCat, setSelectedCat }),
+        hovered && h("div", { style: { position: "absolute", top: 12, right: 12 }},
+          h(TooltipComponent, { indicator: hovered })
+        )
+      ),
+      selectedCat && h("div", { style: { overflowY: "auto", maxHeight: "calc(100vh - 260px)" }},
+        h(CategoryPanel, { catId: selectedCat })
+      )
+    ),
+
+    // Legend
+    h(Legend, { selectedCat, setSelectedCat }),
+
+    // How to Read
+    h(HowToRead),
+
+    // Credit
+    h("div", { style: {
+      textAlign: "center",
+      paddingTop: 12,
+      borderTop: "1px solid rgba(255,255,255,0.04)",
+      fontSize: 11,
+      color: "rgba(255,255,255,0.25)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 6,
+    }},
+      "Designed and built by Jan Solos",
+      h("span", { style: { color: "rgba(255,255,255,0.12)" }}, "\u2022"),
+      h("a", {
+        href: "https://x.com/JanSol0s",
+        target: "_blank",
+        rel: "noopener noreferrer",
+        style: {
+          color: "rgba(255,255,255,0.35)",
+          textDecoration: "none",
+          transition: "color 0.2s",
+        },
+        onMouseEnter: (e) => e.target.style.color = "#1DA1F2",
+        onMouseLeave: (e) => e.target.style.color = "rgba(255,255,255,0.35)",
+      }, "@JanSol0s")
+    )
+  );
+}
+
+ReactDOM.render(h(SignalConfluence), document.getElementById("app"));
+</script>
+</body>
+</html>
