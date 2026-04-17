@@ -1,1 +1,138 @@
+<svg width="1600" height="520" viewBox="0 0 1600 520" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1600" y2="520" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#05060A"/>
+      <stop offset="1" stop-color="#0F0B18"/>
+    </linearGradient>
 
+    <radialGradient id="goldGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(260 120) rotate(18) scale(420 260)">
+      <stop stop-color="#F7C873" stop-opacity="0.42"/>
+      <stop offset="1" stop-color="#F7C873" stop-opacity="0"/>
+    </radialGradient>
+
+    <radialGradient id="violetGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1280 140) rotate(-12) scale(420 260)">
+      <stop stop-color="#B66BFF" stop-opacity="0.38"/>
+      <stop offset="1" stop-color="#B66BFF" stop-opacity="0"/>
+    </radialGradient>
+
+    <radialGradient id="mintGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1160 390) rotate(-8) scale(420 220)">
+      <stop stop-color="#8EF7E3" stop-opacity="0.26"/>
+      <stop offset="1" stop-color="#8EF7E3" stop-opacity="0"/>
+    </radialGradient>
+
+    <linearGradient id="titleGradient" x1="230" y1="120" x2="980" y2="260" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F7C873"/>
+      <stop offset="0.42" stop-color="#8EF7E3"/>
+      <stop offset="1" stop-color="#B66BFF"/>
+    </linearGradient>
+
+    <linearGradient id="panelStroke" x1="170" y1="90" x2="1410" y2="430" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F7C873" stop-opacity="0.85"/>
+      <stop offset="0.5" stop-color="#8EF7E3" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#B66BFF" stop-opacity="0.85"/>
+    </linearGradient>
+
+    <linearGradient id="chipStroke" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#FFFFFF" stop-opacity="0.85"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0.18"/>
+    </linearGradient>
+
+    <filter id="softBlur" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="36"/>
+    </filter>
+
+    <filter id="titleGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8" result="blur1"/>
+      <feColorMatrix in="blur1" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.9 0"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1600" height="520" rx="28" fill="url(#bg)"/>
+
+  <rect x="0" y="0" width="1600" height="520" rx="28" fill="url(#goldGlow)"/>
+  <rect x="0" y="0" width="1600" height="520" rx="28" fill="url(#violetGlow)"/>
+  <rect x="0" y="0" width="1600" height="520" rx="28" fill="url(#mintGlow)"/>
+
+  <g opacity="0.12">
+    <path d="M0 120H1600" stroke="#FFFFFF"/>
+    <path d="M0 240H1600" stroke="#FFFFFF"/>
+    <path d="M0 360H1600" stroke="#FFFFFF"/>
+    <path d="M220 0V520" stroke="#FFFFFF"/>
+    <path d="M540 0V520" stroke="#FFFFFF"/>
+    <path d="M860 0V520" stroke="#FFFFFF"/>
+    <path d="M1180 0V520" stroke="#FFFFFF"/>
+    <path d="M1500 0V520" stroke="#FFFFFF"/>
+  </g>
+
+  <g opacity="0.08">
+    <path d="M0 520L520 0" stroke="#FFFFFF"/>
+    <path d="M260 520L780 0" stroke="#FFFFFF"/>
+    <path d="M520 520L1040 0" stroke="#FFFFFF"/>
+    <path d="M780 520L1300 0" stroke="#FFFFFF"/>
+    <path d="M1040 520L1560 0" stroke="#FFFFFF"/>
+  </g>
+
+  <g filter="url(#softBlur)">
+    <circle cx="295" cy="370" r="84" fill="#F7C873" fill-opacity="0.18"/>
+    <circle cx="1285" cy="118" r="88" fill="#B66BFF" fill-opacity="0.20"/>
+    <circle cx="1160" cy="385" r="74" fill="#8EF7E3" fill-opacity="0.18"/>
+  </g>
+
+  <rect x="150" y="72" width="1300" height="376" rx="30" fill="#0F1118" fill-opacity="0.52" stroke="url(#panelStroke)" stroke-width="1.4"/>
+
+  <rect x="182" y="104" width="8" height="312" rx="4" fill="#F7C873"/>
+  <rect x="198" y="104" width="8" height="312" rx="4" fill="#8EF7E3" fill-opacity="0.9"/>
+  <rect x="214" y="104" width="8" height="312" rx="4" fill="#B66BFF" fill-opacity="0.95"/>
+
+  <text x="250" y="176" fill="#F5F7FB" fill-opacity="0.72" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="24" letter-spacing="6">PREMIUM GITHUB SYSTEM</text>
+
+  <text x="248" y="258" fill="url(#titleGradient)" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="88" font-weight="800" letter-spacing="2" filter="url(#titleGlow)">
+    AURIC VOID
+  </text>
+
+  <text x="252" y="308" fill="#F5F7FB" fill-opacity="0.88" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="28" font-weight="500">
+    luxury interfaces • bold software systems • futuristic product craft
+  </text>
+
+  <rect x="252" y="334" width="420" height="2" rx="1" fill="url(#titleGradient)"/>
+
+  <g>
+    <rect x="252" y="366" width="228" height="54" rx="27" fill="#141824" fill-opacity="0.88" stroke="url(#chipStroke)"/>
+    <circle cx="284" cy="393" r="7" fill="#F7C873"/>
+    <text x="304" y="400" fill="#F5F7FB" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="20" font-weight="700">STATUS: SHIPPING</text>
+  </g>
+
+  <g>
+    <rect x="500" y="366" width="250" height="54" rx="27" fill="#141824" fill-opacity="0.88" stroke="url(#chipStroke)"/>
+    <circle cx="532" cy="393" r="7" fill="#8EF7E3"/>
+    <text x="552" y="400" fill="#F5F7FB" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="20" font-weight="700">STYLE: AURIC VOID</text>
+  </g>
+
+  <g>
+    <rect x="770" y="366" width="282" height="54" rx="27" fill="#141824" fill-opacity="0.88" stroke="url(#chipStroke)"/>
+    <circle cx="802" cy="393" r="7" fill="#B66BFF"/>
+    <text x="822" y="400" fill="#F5F7FB" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="20" font-weight="700">BUILD: FUTURE READY</text>
+  </g>
+
+  <g opacity="0.95">
+    <circle cx="1280" cy="184" r="80" fill="#111423" stroke="#FFFFFF" stroke-opacity="0.16"/>
+    <circle cx="1280" cy="184" r="54" fill="none" stroke="#F7C873" stroke-opacity="0.8" stroke-width="2"/>
+    <circle cx="1280" cy="184" r="36" fill="none" stroke="#8EF7E3" stroke-opacity="0.8" stroke-width="2"/>
+    <circle cx="1280" cy="184" r="18" fill="#B66BFF"/>
+  </g>
+
+  <g opacity="0.95">
+    <rect x="1140" y="276" width="238" height="96" rx="24" fill="#121624" fill-opacity="0.92" stroke="#FFFFFF" stroke-opacity="0.16"/>
+    <text x="1172" y="314" fill="#F7C873" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="18" font-weight="700">FOCUS</text>
+    <text x="1172" y="346" fill="#F5F7FB" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="30" font-weight="800">PREMIUM UI</text>
+  </g>
+
+  <g opacity="0.78">
+    <text x="1144" y="110" fill="#F5F7FB" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="20" letter-spacing="3">README / HERO</text>
+    <text x="1144" y="136" fill="#F5F7FB" fill-opacity="0.66" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="16">edit title, subtitle, and badge text</text>
+  </g>
+</svg>
