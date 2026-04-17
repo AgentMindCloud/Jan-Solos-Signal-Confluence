@@ -75,9 +75,9 @@ A premium design system for interfaces that need to feel precise, memorable, and
 
 ## GitHub signal
 
-![GitHub Stats](https://github-readme-stats.vercel.app/api?username=YOUR_USERNAME&show_icons=true&hide_border=true&bg_color=00000000&title_color=F7C873&text_color=F5F7FB&icon_color=B66BFF)
+![GitHub Stats](https://github-readme-stats.vercel.app/api?username=AgentMindCloud&show_icons=true&hide_border=true&bg_color=00000000&title_color=F7C873&text_color=F5F7FB&icon_color=B66BFF)
 
-![Top Languages](https://github-readme-stats.vercel.app/api/top-langs/?username=YOUR_USERNAME&layout=compact&hide_border=true&bg_color=00000000&title_color=8EF7E3&text_color=F5F7FB)
+![Top Languages](https://github-readme-stats.vercel.app/api/top-langs/?username=AgentMindCloud&layout=compact&hide_border=true&bg_color=00000000&title_color=8EF7E3&text_color=F5F7FB)
 
 ---
 
@@ -92,10 +92,10 @@ A premium design system for interfaces that need to feel precise, memorable, and
 
 ## Contact
 
-- GitHub: `@YOUR_USERNAME`
-- X: `@YOUR_HANDLE`
-- Email: `you@domain.com`
-- Portfolio: `https://yourdomain.com`
+- GitHub: `@AgentMindCloud`
+- X: `@YJan_Sol0s`
+- Email: `jan@solos.com`
+- Portfolio: `https://janisolos.com`
 
 ---
 
